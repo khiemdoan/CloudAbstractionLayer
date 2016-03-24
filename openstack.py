@@ -19,6 +19,7 @@ class OpenStack(Cal):
         domain = config.get_domain()
         username = config.get_username()
         password = config.get_password()
+        self.__network_name = config.get_internal_network()
 
         auth = Auth(server, 5000, username, password, domain)
         auth_token = auth.get_auth_token()
@@ -30,8 +31,9 @@ class OpenStack(Cal):
 
     def start(self, name='test'):
         image_ref = self.__glance.get_image_ref()
-        network_id = self.__network.get_network_id()
+        network_id = self.__network.get_network_id(self.__network_name)
         server_id = self.__nova.create(image_ref, name, network_id=network_id)
+        self.__nova.add_floating_ip()
         return server_id
 
     def stop(self):

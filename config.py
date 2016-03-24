@@ -4,25 +4,34 @@ import ConfigParser
 __author__ = 'Khiem Doan Hoa'
 
 
-class Config():
+class Config:
 
-    def __init__(self, file_path):
-        config = ConfigParser.ConfigParser()
-        config.read(file_path)
+    def __init__(self, file_path='config.ini'):
+        self.__config = ConfigParser.SafeConfigParser()
+        self.__config.read(file_path)
 
-        self.__server = config.get('OpenStackConfig', 'server')
-        self.__domain = config.get('OpenStackConfig', 'domain')
-        self.__username = config.get('OpenStackConfig', 'username')
-        self.__password = config.get('OpenStackConfig', 'password')
+    def __get(self, option=''):
+        section = 'OpenStackConfig'
+        try:
+            value = self.__config.get(section, option, '')
+        except ConfigParser.NoOptionError:
+            value = 'No option \'' + option + '\' in section: \'' + section + '\''
+        return value
 
     def get_server(self):
-        return self.__server
+        return self.__get('server')
 
     def get_domain(self):
-        return self.__domain
+        return self.__get('domain')
 
     def get_username(self):
-        return self.__username
+        return self.__get('username')
 
     def get_password(self):
-        return self.__password
+        return self.__get('password')
+
+    def get_internal_network(self):
+        return self.__get('internal-network')
+
+    def get_public_network(self):
+        return self.__get('public-network')

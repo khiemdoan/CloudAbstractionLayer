@@ -1,5 +1,6 @@
 
 from http import Http
+from config import Config
 
 
 __author__ = 'Khiem Doan Hoa'
@@ -33,7 +34,7 @@ class Nova:
 
         if network_id is not None:
             data['server']['networks'] = []
-            network = [{'uuid': '79351880-ed68-407b-a654-894f60b59dc8'}]
+            network = [{'uuid': network_id}]
             data['server']['networks'] += network
 
         data = self.__http.send_post(path, data, header)
@@ -61,9 +62,10 @@ class Nova:
         data = self.__http.send_get(path, {}, header)
         return data
 
-    def add_floating_ip(self, ip_address):
+    def add_floating_ip(self):
         path = 'v2.1/' + self.__tenant_id + '/servers/' + self.__server_id + '/action'
         header = {"X-Auth-Token": self.__auth_token}
+        ip_address = self.__get_float_ip_address()
         data = {
             "addFloatingIp": {
                 "address": ip_address
@@ -111,3 +113,18 @@ class Nova:
                 break
 
         return flavor_ref
+
+    def __get_float_ip_address(self):
+        path = 'v2.1/' + self.__tenant_id + '/os-floating-ips'
+        header = {"X-Auth-Token": self.__auth_token}
+
+        floating_ips = self.__http.send_get(path, {}, header)
+        for floating_ip in floating_ips['floating_ips']:
+            if floating_ip['fixed_ip'] is None:
+                return floating_ip['ip']
+
+        config = Config()
+        public_network_name = config.get_public_network()
+        data = {'pool': public_network_name}
+        floating_ip = self.__http.send_post(path, data, header)
+        return floating_ip['floating_ip']['ip']
