@@ -35,3 +35,12 @@ class Config:
 
     def get_public_network(self):
         return self.__get('public-network')
+
+    def get_key_pair(self):
+        return self.__get('key_pair')
+
+    def get_user_vm(self):
+        return self.__get('user_vm')
+
+    def get_key_name(self):
+        return self.__get('key_name')

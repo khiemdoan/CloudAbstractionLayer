@@ -16,8 +16,9 @@ class Nova:
         self.__tenant_id = tenant_id
         self.__server_id = None
         self.__name = None
+        self.__floating_ip = None
 
-    def create(self, image_ref, server_name, flavor='m1.tiny', network_id=None):
+    def create(self, image_ref, server_name, flavor='m1.tiny', network_id=None, key_name=None):
         if self.__server_id is not None:
             return self.__server_id
 
@@ -37,6 +38,9 @@ class Nova:
             network = [{'uuid': network_id}]
             data['server']['networks'] += network
 
+        if key_name is not None:
+            data['server']['key_name'] = key_name
+
         data = self.__http.send_post(path, data, header)
         self.__server_id = data['server']['id']
         return self.__server_id
@@ -51,6 +55,7 @@ class Nova:
         response_code = self.__http.send_delete(path, header)
         if response_code == 204:
             self.__server_id = None
+            self.__floating_ip = None
             return True
         else:
             return False
@@ -72,7 +77,11 @@ class Nova:
             }
         }
         code = self.__http.send_post_get_code(path, data, header)
-        return code == 202
+        if code == 202:
+            self.__floating_ip = ip_address
+            return ip_address
+        else:
+            return False
 
     def backup(self, name='backup'):
         path = 'v2.1/' + self.__tenant_id + '/servers/' + self.__server_id + '/action'
@@ -128,3 +137,6 @@ class Nova:
         data = {'pool': public_network_name}
         floating_ip = self.__http.send_post(path, data, header)
         return floating_ip['floating_ip']['ip']
+
+    def get_floating_ip(self):
+        return self.__floating_ip

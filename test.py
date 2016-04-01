@@ -22,7 +22,6 @@ def dumpclean(obj):
     else:
         print obj
 
-
 machine = OpenStack()
 
 while True:
@@ -31,7 +30,10 @@ while True:
     print '1. Start machine'
     print '2. Stop machine'
     print '3. Get status'
-    print '4. Add address'
+    print '4. Associate floating ip address'
+    print '5. Run command'
+    print '6. Upload file'
+    print '7. Download file'
     print '5. Backup'
     print '6. Restore'
 
@@ -39,7 +41,7 @@ while True:
         x = int(raw_input('Enter function number: '))
 
         if x == 0:
-            break;
+            break
 
         if x == 1:
             server_id = machine.start()
@@ -50,24 +52,31 @@ while True:
             if ret:
                 print 'Server has been stop!'
             else:
-                print 'There is an error when stoping'
+                print 'There is an error when stopping'
 
         if x == 3:
             print 'Status:'
             dumpclean(machine.status())
 
         if x == 4:
-            ip_address = raw_input('Enter function number: ')
-            print 'Add ip address'
-            print machine.add_floating_ip(ip_address)
+            print 'Floating ip address:'
+            print machine.associate_floating_ip()
 
         if x == 5:
-            print 'Backup'
-            print machine.backup('My backup')
+            command = raw_input('Enter command: ')
+            print machine.execute(command)
 
         if x == 6:
-            print 'Restore'
-            print machine.restore()
+            print 'Upload file'
+            source_path = raw_input('Source path: ')
+            destination_path = raw_input('Destination path: ')
+            machine.put_data(source_path, destination_path)
+
+        if x == 7:
+            print 'Download file'
+            source_path = raw_input('Source path: ')
+            destination_path = raw_input('Destination path: ')
+            machine.put_data(source_path, destination_path)
 
     except ValueError:
         print 'Invalid Number'

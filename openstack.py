@@ -5,6 +5,8 @@ from nova import Nova
 from glance import Glance
 from config import Config
 from network import Network
+import subprocess
+import shlex
 
 
 __author__ = 'Khiem Doan Hoa'
@@ -29,11 +31,14 @@ class OpenStack(Cal):
         self.__glance = Glance(server, 9292, auth_token)
         self.__network = Network(server, 9696, auth_token)
 
+        self.__key_pair = config.get_key_pair()
+        self.__user_vm = config.get_user_vm()
+        self.__key_name = config.get_key_name()
+
     def start(self, name='test'):
         image_ref = self.__glance.get_image_ref()
         network_id = self.__network.get_network_id(self.__network_name)
-        server_id = self.__nova.create(image_ref, name, network_id=network_id)
-        self.__nova.add_floating_ip()
+        server_id = self.__nova.create(image_ref, name, network_id=network_id, key_name=self.__key_name)
         return server_id
 
     def stop(self):
@@ -43,17 +48,24 @@ class OpenStack(Cal):
     def status(self):
         return self.__nova.show_details()
 
-    def add_floating_ip(self, ip_address):
-        return self.__nova.add_floating_ip(ip_address)
+    def associate_floating_ip(self):
+        return self.__nova.add_floating_ip()
 
     def execute(self, command):
-        print 'execute command'
+        ip = self.__nova.get_floating_ip()
+        cmd = 'ssh -i ' + self.__key_pair + ' ' + self.__user_vm + '@' + ip + ' ' + command
+        cmd_run = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        return cmd_run.communicate()
 
     def put_data(self, source, destination):
-        print 'putdata'
+        ip = self.__nova.get_floating_ip()
+        cmd = 'scp -i ' + self.__key_pair + ' ' + source + ' ' + self.__user_vm + '@' + ip + ':' + destination
+        subprocess.Popen(shlex.split(cmd), shell=True, stdout=None)
 
     def get_data(self, source, destination):
-        print 'getdata'
+        ip = self.__nova.get_floating_ip()
+        cmd = 'scp -i ' + self.__key_pair + ' ' + self.__user_vm + '@' + ip + ':' + destination + ' ' + source
+        subprocess.Popen(shlex.split(cmd), shell=True, stdout=None)
 
     def backup(self, name='backup'):
         return self.__nova.backup(name)
