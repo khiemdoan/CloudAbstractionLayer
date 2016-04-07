@@ -6,7 +6,6 @@ from glance import Glance
 from config import Config
 from network import Network
 import subprocess
-import shlex
 
 
 __author__ = 'Khiem Doan Hoa'
@@ -15,13 +14,13 @@ __author__ = 'Khiem Doan Hoa'
 class OpenStack(Cal):
 
     def __init__(self):
-        config = Config('config.ini')
+        self.__config = Config('config.ini')
 
-        server = config.get_server()
-        domain = config.get_domain()
-        username = config.get_username()
-        password = config.get_password()
-        self.__network_name = config.get_internal_network()
+        server = self.__config.get_server()
+        domain = self.__config.get_domain()
+        username = self.__config.get_username()
+        password = self.__config.get_password()
+        self.__network_name = self.__config.get_internal_network()
 
         auth = Auth(server, 5000, username, password, domain)
         auth_token = auth.get_auth_token()
@@ -31,14 +30,17 @@ class OpenStack(Cal):
         self.__glance = Glance(server, 9292, auth_token)
         self.__network = Network(server, 9696, auth_token)
 
-        self.__key_pair = config.get_key_pair()
-        self.__user_vm = config.get_user_vm()
-        self.__key_name = config.get_key_name()
+        self.__key_pair = self.__config.get_key_pair()
+        self.__user_vm = self.__config.get_user_vm()
 
     def start(self, name='test'):
-        image_ref = self.__glance.get_image_ref()
+        image_name = self.__config.get_image_name()
+        key_name = self.__config.get_key_name()
+        flavor = self.__config.get_flavor()
+
+        image_ref = self.__glance.get_image_ref(image_name)
         network_id = self.__network.get_network_id(self.__network_name)
-        server_id = self.__nova.create(image_ref, name, network_id=network_id, key_name=self.__key_name)
+        server_id = self.__nova.create(image_ref, name, flavor, network_id=network_id, key_name=key_name)
         return server_id
 
     def stop(self):
@@ -59,13 +61,19 @@ class OpenStack(Cal):
 
     def put_data(self, source, destination):
         ip = self.__nova.get_floating_ip()
-        cmd = 'scp -i ' + self.__key_pair + ' ' + source + ' ' + self.__user_vm + '@' + ip + ':' + destination
-        subprocess.Popen(shlex.split(cmd), shell=True, stdout=None)
+        cmd = 'ssh-keygen -R ' + ip
+        subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = 'scp -i ' + self.__key_pair + ' -r ' + source + ' ' + self.__user_vm + '@' + ip + ':' + destination
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc.communicate()
 
     def get_data(self, source, destination):
         ip = self.__nova.get_floating_ip()
-        cmd = 'scp -i ' + self.__key_pair + ' ' + self.__user_vm + '@' + ip + ':' + destination + ' ' + source
-        subprocess.Popen(shlex.split(cmd), shell=True, stdout=None)
+        cmd = 'ssh-keygen -R ' + ip
+        subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = 'scp -i ' + self.__key_pair + ' -r ' + self.__user_vm + '@' + ip + ':' + destination + ' ' + source
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc.communicate()
 
     def backup(self, name='backup'):
         return self.__nova.backup(name)

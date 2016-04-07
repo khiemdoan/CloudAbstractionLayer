@@ -135,7 +135,7 @@ class Nova:
         config = Config()
         public_network_name = config.get_public_network()
         data = {'pool': public_network_name}
-        floating_ip = self.__http.send_post(path, data, header)
+        self.__floating_ip = self.__http.send_post(path, data, header)
         return floating_ip['floating_ip']['ip']
 
     def get_floating_ip(self):

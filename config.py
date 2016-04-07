@@ -15,7 +15,7 @@ class Config:
         try:
             value = self.__config.get(section, option, '')
         except ConfigParser.NoOptionError:
-            value = 'No option \'' + option + '\' in section: \'' + section + '\''
+            value = ''
         return value
 
     def get_server(self):
@@ -29,6 +29,12 @@ class Config:
 
     def get_password(self):
         return self.__get('password')
+
+    def get_image_name(self):
+        return self.__get('image_name')
+
+    def get_flavor(self):
+        return self.__get('flavor')
 
     def get_internal_network(self):
         return self.__get('internal-network')
