@@ -140,3 +140,9 @@ class Nova:
 
     def get_floating_ip(self):
         return self.__floating_ip
+
+    def get_system_info(self):
+        path = 'v2.1/' + self.__tenant_id + '/limits'
+        header = {"X-Auth-Token": self.__auth_token}
+        data = self.__http.send_get(path, {}, header)
+        return data['limits']['absolute']

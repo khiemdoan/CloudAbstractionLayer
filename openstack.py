@@ -80,3 +80,19 @@ class OpenStack(Cal):
 
     def restore(self):
         return self.__nova.restore()
+
+    def get_system_info(self):
+        absolute = self.__nova.get_system_info()
+        print
+        print 'maxTotalInstances: %d' % absolute['maxTotalInstances']
+        print 'totalInstancesUsed: %d' % absolute['maxTotalCores']
+        print
+        print 'maxTotalRAMSize: %d' % absolute['maxTotalRAMSize']
+        print 'totalRAMUsed: %d' % absolute['totalRAMUsed']
+        print
+        print 'maxTotalCores: %d' % absolute['maxTotalCores']
+        print 'totalCoresUsed: %d' % absolute['totalCoresUsed']
+        print
+        print 'maxTotalFloatingIps: %d' % absolute['maxTotalFloatingIps']
+        print 'totalFloatingIpsUsed: %d' % absolute['totalFloatingIpsUsed']
+        print

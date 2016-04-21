@@ -74,7 +74,7 @@ class Http(object):
     # return response code
     def send_delete(self, path, headers={'Accept': 'text/plain'}):
         conn = self.__create_connection()
-        conn.request('DELETE', '/' + path, '', headers);
+        conn.request('DELETE', '/' + path, '', headers)
         res = conn.getresponse()
         conn.close()
         return res.status
